@@ -34,7 +34,7 @@ let imageX = canvas.width / 2 - 25;
 let imageY = canvas.height - 120;
 const imageWidth = 40;
 const imageHeight = 80;
-const movespeed = 10;
+const movespeed = 4;
 
 const img = new Image();
 img.src = "images/road.jpg";
@@ -119,8 +119,17 @@ function draw() {
 }
 
 function update() {
-    
     if (gameOver) return;
+       
+    const leftBoundary = 60;
+    const rightBoundary = 445 - imageWidth;
+    
+    if (leftPressed && imageX > leftBoundary) {
+        imageX -= movespeed;
+    }
+    if (rightPressed && imageX < rightBoundary) {
+        imageX += movespeed;
+    }
 
     backgroundY = (backgroundY + backgroundSpeed) % canvas.height;
 
@@ -202,13 +211,16 @@ function moveObstacles(){
     }
 }
 };
-document.addEventListener("keydown", (e)=> {
-    if(e.key === "ArrowLeft" && imageX > 50){
-        imageX -= movespeed;
-    }
-    if(e.key === "ArrowRight" && imageX < canvas.width - imageWidth){
-        imageX += movespeed;
-    }
+let leftPressed = false;
+let rightPressed = false;
+
+document.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowLeft") leftPressed = true;
+    if (e.key === "ArrowRight") rightPressed = true;
+});
+document.addEventListener("keyup", (e) => {
+    if (e.key === "ArrowLeft") leftPressed = false;
+    if (e.key === "ArrowRight") rightPressed = false;
 });
 
 function createPowerup() {
