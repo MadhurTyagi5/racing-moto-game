@@ -28,6 +28,7 @@ let gameOver = false;
 let backgroundY = 0;
 let backgroundSpeed = 5;
 let score = 0;
+let highScore = localStorage.getItem("highScore") ? parseInt(localStorage.getItem("highScore")) : 0;
 let speedObstacle = 3;
 let imageX = canvas.width / 2 - 25;
 let imageY = canvas.height - 120;
@@ -54,7 +55,7 @@ const obstacleImgs = [
     return img;
 });
 
-// --- Powerups ---
+
 const powerupImgs = [
     { src: "images/coin.png", type: "coin" },
     { src: "images/shield.png", type: "shield" },
@@ -75,7 +76,7 @@ const obstaclesHeight = 80;
 const obstacles = [];
 
 
-// Increase difficulty over time
+
 
 setInterval(() => {
     if(speedObstacle < 8){
@@ -114,6 +115,7 @@ function draw() {
     ctx.fillStyle = "white";
     ctx.font = "20px Arial";
     ctx.fillText(`Score: ${score}`, 10, 30);
+    ctx.fillText(`High Score: ${highScore}`, 10, 60);
 }
 
 function update() {
@@ -178,8 +180,14 @@ function moveObstacles(){
         )) {
             console.log("Collision detected!");
             gameOver = true;
-            alert(`Game Over!
-Your score: ${score}`);
+            if(score > highScore){
+                highScore = score;
+                localStorage.setItem("highScore", highScore);
+                 alert(`Game Over!\nYour score: ${score}\nNew High Score!`);
+    } else {
+        alert(`Game Over!\nYour score: ${score}\nHigh Score: ${highScore}`);
+    }
+            
             document.location.reload();
             return;
         }
@@ -232,13 +240,13 @@ function movePowerups() {
         const p = powerups[i];
         p.y += speedObstacle;
 
-// Check collision with car
+
 if (checkCollision(
     { x: imageX, y: imageY, width: imageWidth, height: imageHeight },
     p   // ✅ check collision with current powerup
 )) {
     if (p.type === "coin") {
-        score += 50; // bonus points
+        score += 50; 
     } else if (p.type === "speed") {
         speedObstacle += 2;
         setTimeout(() => speedObstacle -= 2, 5000); // speed boost lasts 5s
@@ -247,13 +255,13 @@ if (checkCollision(
         setTimeout(() => shieldActive = false, 5000); // shield lasts 5s
     }
 
-    // Remove collected powerup
+    
     powerups.splice(i, 1);
     i--;
     continue;
 
 }
-        // Remove if off-screen
+       
         if (p.y > canvas.height) {
             powerups.splice(i, 1);
             i--;
