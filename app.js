@@ -1,11 +1,31 @@
+const canvasR = document.getElementById("right");
+const ctxR = canvasR.getContext("2d");
+
+canvasR.width = 100;
+canvasR.height = window.innerHeight;
+
+const rightImg = new Image();
+rightImg.src = "right.png";
+
+
+const canvasL = document.getElementById("left");
+const ctxL = canvasL.getContext("2d");
+
+canvasL.width = 100;
+canvasL.height = window.innerHeight;
+
+const leftImg = new Image();
+leftImg.src = "left.png";
+
 const canvas = document.getElementById("myCanvas");
 const ctx = canvas.getContext("2d");
 
 canvas.width = 500;
 canvas.height = window.innerHeight;
 
-let bgY = 0;
-let bgSpeed = 5;
+let gameOver = false;
+let backgroundY = 0;
+let backgroundSpeed = 5;
 let score = 0;
 let speedObstacle = 3;
 let imageX = canvas.width / 2 - 25;
@@ -39,38 +59,32 @@ const obstacles = [];
 // Increase difficulty over time
 
 setInterval(() => {
-    if(speedObstacle < 11){
+    if(speedObstacle < 8){
         speedObstacle += 1;    
     }
     console.log(speedObstacle); 
-    // if(difficulty > 200){
-        //     difficulty -= 300;
-        //     console.log(difficulty);
-        // }
-    }, 15000);
-    if(speedObstacle < 4){
+    }, 10000);
+
     setInterval(createObstacle, 700);
-    }
-    if(speedObstacle >= 4 && speedObstacle < 6){
-        setInterval(createObstacle, 500); 
-    }
-    if(speedObstacle >= 6 && speedObstacle < 8){
-        setInterval(createObstacle, 300); 
-    }
-    if(speedObstacle >= 8 && speedObstacle <= 11){
-        setInterval(createObstacle, 150);
-    }
+
     setInterval(() => {
         score += 1;
-    }, 1);
+    }, 10);
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    
+
+    if (rightImg.complete) {
+        ctxR.drawImage(rightImg, 0, backgroundY, canvasR.width, canvasR.height);
+        ctxR.drawImage(rightImg, 0, backgroundY - canvasR.height, canvasR.width, canvasR.height);
+    }
+    if (leftImg.complete) {    
+        ctxL.drawImage(leftImg, 0, backgroundY, canvasL.width, canvasL.height);
+        ctxL.drawImage(leftImg, 0, backgroundY - canvasL.height, canvasL.width, canvasL.height);
+    }
     if (img.complete) {
-        ctx.drawImage(img, 0, bgY, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, bgY - canvas.height, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, backgroundY, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, backgroundY - canvas.height, canvas.width, canvas.height);
     }
     
     if (moto.complete) {
@@ -83,9 +97,9 @@ function draw() {
 
 function update() {
 
-    bgY += bgSpeed;
-    if (bgY >= canvas.height) {
-        bgY = 0; 
+    backgroundY += backgroundSpeed;
+    if (backgroundY >= canvas.height) {
+        backgroundY = 0; 
     }
 
     draw();
@@ -125,7 +139,6 @@ function moveObstacles(){
         obstacles[i].y += speedObstacle;
         if(obstacles[i].y > canvas.height){
             obstacles.splice(i , 1);
-            score += 1000;
             console.log(score);
         }
     }
@@ -139,3 +152,7 @@ document.addEventListener("keydown", (e)=> {
     }
 });
 update();
+document.addEventListener("click" ,(e) =>{
+    let v = x.client
+console.log("")
+});
