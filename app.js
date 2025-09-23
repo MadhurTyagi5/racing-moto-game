@@ -24,7 +24,7 @@ canvas.width = 500;
 canvas.height = window.innerHeight;
 
 
-let gameOver = false;
+let gameOver = false; 
 let backgroundY = 0;
 let backgroundSpeed = 5;
 let score = 0;
@@ -232,23 +232,27 @@ function movePowerups() {
         const p = powerups[i];
         p.y += speedObstacle;
 
-        // Check collision with car
-        if (checkCollision({ x: imageX, y: imageY, width: imageWidth, height: imageHeight }, p)) {
-            if (p.type === "coin") {
-                score += 50; // bonus points
-            } else if (p.type === "speed") {
-                speedObstacle += 2;
-                setTimeout(() => speedObstacle -= 2, 5000); // boost lasts 5s
-            } else if (p.type === "shield") {
-                shieldActive = true;
-                setTimeout(() => shieldActive = false, 5000);
-            }
+// Check collision with car
+if (checkCollision(
+    { x: imageX, y: imageY, width: imageWidth, height: imageHeight },
+    p   // ✅ check collision with current powerup
+)) {
+    if (p.type === "coin") {
+        score += 50; // bonus points
+    } else if (p.type === "speed") {
+        speedObstacle += 2;
+        setTimeout(() => speedObstacle -= 2, 5000); // speed boost lasts 5s
+    } else if (p.type === "shield") {
+        shieldActive = true;
+        setTimeout(() => shieldActive = false, 5000); // shield lasts 5s
+    }
 
-            powerups.splice(i, 1); // remove after collected
-            i--;
-            continue;
-        }
+    // Remove collected powerup
+    powerups.splice(i, 1);
+    i--;
+    continue;
 
+}
         // Remove if off-screen
         if (p.y > canvas.height) {
             powerups.splice(i, 1);
@@ -256,24 +260,4 @@ function movePowerups() {
         }
     }
 }
-
-movePowerups();
-if (checkCollision(
-    { x: imageX, y: imageY, width: imageWidth, height: imageHeight },
-    obstacles[i]
-)) {
-    if (!shieldActive) {
-        console.log("Collision detected!");
-        gameOver = true;
-        alert(`Game Over!\nYour score: ${score}`);
-        document.location.reload();
-        return;
-    } else {
-        // destroy obstacle if shield is active
-        obstacles.splice(i, 1);
-        i--;
-    }
-}
-
-
 update();
