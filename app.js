@@ -142,7 +142,7 @@ function createObstacle() {
         y,
         width: obstacleWidth,
         height: obstaclesHeight,
-        img: obstacleImgs[Math.floor(Math.random() * obstacleImgs.length)]
+        img: randomImg // Use the already selected image
     });
 }      
 
@@ -180,15 +180,20 @@ function moveObstacles(){
         )) {
             console.log("Collision detected!");
             gameOver = true;
+
             if(score > highScore){
                 highScore = score;
                 localStorage.setItem("highScore", highScore);
-                 alert(`Game Over!\nYour score: ${score}\nNew High Score!`);
-    } else {
-        alert(`Game Over!\nYour score: ${score}\nHigh Score: ${highScore}`);
-    }
-            
-            document.location.reload();
+            }
+
+            // Show Game Over message and Play Again button
+            const gameOverContainer = document.getElementById("gameOverContainer");
+            const gameOverMessage = document.getElementById("gameOverMessage");
+            gameOverContainer.style.display = "block";
+            gameOverMessage.innerHTML = score > highScore
+                ? `Game Over!<br>Your score: ${score}<br>New High Score!`
+                : `Game Over!<br>Your score: ${score}<br>High Score: ${highScore}`;
+
             return;
         }
         if(obstacles[i].y > canvas.height){
@@ -201,7 +206,7 @@ document.addEventListener("keydown", (e)=> {
     if(e.key === "ArrowLeft" && imageX > 50){
         imageX -= movespeed;
     }
-    if(e.key === "ArrowRight" && imageX < 454 - imageWidth){
+    if(e.key === "ArrowRight" && imageX < canvas.width - imageWidth){
         imageX += movespeed;
     }
 });
@@ -233,7 +238,6 @@ function drawPowerups() {
         }
     }
 }
-drawPowerups();
 
 function movePowerups() {
     for (let i = 0; i < powerups.length; i++) {
@@ -243,7 +247,7 @@ function movePowerups() {
 
 if (checkCollision(
     { x: imageX, y: imageY, width: imageWidth, height: imageHeight },
-    p   // ✅ check collision with current powerup
+    p   
 )) {
     if (p.type === "coin") {
         score += 50; 
@@ -268,4 +272,18 @@ if (checkCollision(
         }
     }
 }
+const playAgainBtn = document.getElementById("playAgainBtn");
+playAgainBtn.addEventListener("click", () => {
+    score = 0;
+    gameOver = false;
+    backgroundY = 0;
+    speedObstacle = 3;
+    imageX = canvas.width / 2 - 25;
+    imageY = canvas.height - 120;
+    obstacles.length = 0;
+    powerups.length = 0;
+    shieldActive = false;
+    document.getElementById("gameOverContainer").style.display = "none";
+    update();
+});
 update();
