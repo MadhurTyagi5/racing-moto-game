@@ -24,6 +24,14 @@ canvas.width = 500;
 canvas.height = window.innerHeight;
 
 
+const engineSound = new Audio("sounds/engine.mp3");   
+const crashSound = new Audio("sounds/crash.mp3");
+const coinSound = new Audio("sounds/coin.mp3");
+
+engineSound.loop = true;
+
+
+
 let gameOver = false; 
 let backgroundY = 0;
 let backgroundSpeed = 5;
@@ -139,6 +147,14 @@ function update() {
     movePowerups();
     drawPowerups();
     requestAnimationFrame(update);
+
+    if (!engineSoundPlaying) {
+    engineSound.loop = true;
+    engineSound.volume = 0.3;
+    engineSound.play();
+    engineSoundPlaying = true;
+}
+
 }
 
 function createObstacle() {
@@ -187,6 +203,9 @@ function moveObstacles(){
             height: imageHeight},
             obstacles[i]
         )) {
+            crashSound.volume = 0.5;
+            crashSound.play();
+
             console.log("Collision detected!");
             gameOver = true;
 
@@ -263,6 +282,10 @@ if (checkCollision(
 )) {
     if (p.type === "coin") {
         score += 50; 
+        coinSound.currentTime = 0; 
+        coinSound.play();           
+
+
     } else if (p.type === "speed") {
         speedObstacle += 2;
         setTimeout(() => speedObstacle -= 2, 5000); // speed boost lasts 5s
