@@ -5,7 +5,7 @@ canvasR.width = 100;
 canvasR.height = window.innerHeight;
 
 const rightImg = new Image();
-rightImg.src = "images/right.png";
+
 
 
 const canvasL = document.getElementById("left");
@@ -15,13 +15,35 @@ canvasL.width = 100;
 canvasL.height = window.innerHeight;
 
 const leftImg = new Image();
-leftImg.src = "images/left.png";
+
 
 const canvas = document.getElementById("myCanvas");
 const ctx = canvas.getContext("2d");
 
 canvas.width = 500;
 canvas.height = window.innerHeight;
+
+
+const themes = {
+    default: {
+        road: "images/road.jpg",
+        left: "images/left.png",
+        right: "images/right.png"
+    },
+    desert: {
+        road: "images/road.jpg",
+        left: "images/left2.png",
+        right: "images/right2.png"
+    },
+    snow: {
+        road: "images/road.jpg",
+        left: "images/left3.png",
+        right: "images/right3.png"
+    }
+};
+
+
+
 
 
 const engineSound = new Audio("sounds/engine.mp3");   
@@ -45,7 +67,9 @@ const imageHeight = 80;
 const movespeed = 4;
 
 const img = new Image();
-img.src = "images/road.jpg";
+img.src = themes.default.road;
+leftImg.src = themes.default.left;
+rightImg.src = themes.default.right;
 
 const moto = new Image();
 moto.src = "images/car2.png";
@@ -307,6 +331,22 @@ if (checkCollision(
         }
     }
 }
+
+
+const themeButtons = document.querySelectorAll(".themeBtn");
+themeButtons.forEach(button => {
+    button.addEventListener("click", () => {
+        themeButtons.forEach(btn => btn.classList.remove("active"));
+        button.classList.add("active");
+
+        const selectedTheme = button.dataset.theme;
+
+        img.src = themes[selectedTheme].road;
+        leftImg.src = themes[selectedTheme].left;
+        rightImg.src = themes[selectedTheme].right;
+    });
+});
+
 const playAgainBtn = document.getElementById("playAgainBtn");
 playAgainBtn.addEventListener("click", () => {
     score = 0;
