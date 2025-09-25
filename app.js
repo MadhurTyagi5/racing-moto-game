@@ -5,7 +5,7 @@ canvasR.width = 100;
 canvasR.height = window.innerHeight;
 
 const rightImg = new Image();
-
+rightImg.src = "images/right.png";
 
 
 const canvasL = document.getElementById("left");
@@ -15,7 +15,7 @@ canvasL.width = 100;
 canvasL.height = window.innerHeight;
 
 const leftImg = new Image();
-
+leftImg.src = "images/left.png";
 
 const canvas = document.getElementById("myCanvas");
 const ctx = canvas.getContext("2d");
@@ -52,14 +52,7 @@ const coinSound = new Audio("sounds/coin.mp3");
 
 engineSound.loop = true;
 
-
-
 let gameOver = false; 
-let engineSoundPlaying = false;
-let brakePressed = false;
-let boostActive = false;
-let currentBackgroundSpeed = 0;
-let currentObstacleSpeed = 0;
 let backgroundY = 0;
 let backgroundSpeed = 5;
 let score = 0;
@@ -72,9 +65,7 @@ const imageHeight = 80;
 const movespeed = 4;
 
 const img = new Image();
-img.src = themes.default.road;
-leftImg.src = themes.default.left;
-rightImg.src = themes.default.right;
+img.src = "images/road.jpg";
 
 const moto = new Image();
 moto.src = "images/car2.png";
@@ -157,7 +148,7 @@ function draw() {
 
 function update() {
     if (gameOver) return;
-    
+
       currentBackgroundSpeed = backgroundSpeed;
       currentObstacleSpeed = speedObstacle;
 
@@ -238,7 +229,7 @@ function checkCollision(rect1, rect2) {
 
 function moveObstacles(){
     for(let i = 0; i < obstacles.length; i++){
-        obstacles[i].y += currentObstacleSpeed;
+        obstacles[i].y += speedObstacle;
         if(checkCollision({
             x: imageX,
             y: imageY, 
@@ -251,7 +242,6 @@ function moveObstacles(){
 
             console.log("Collision detected!");
             gameOver = true;
-
             if(score > highScore){
                 highScore = score;
                 localStorage.setItem("highScore", highScore);
@@ -360,6 +350,7 @@ if (checkCollision(
             i--;
         }
     }
+
 }
 
 
@@ -392,3 +383,4 @@ playAgainBtn.addEventListener("click", () => {
     update();
 });
 update();
+
