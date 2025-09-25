@@ -192,6 +192,24 @@ function draw() {
 function update() {
     
     if (gameOver) return;
+    
+    backgroundY = backgroundY + backgroundSpeed;
+    if(backgroundY >= canvas.height){
+        backgroundY = 0;
+    
+      currentBackgroundSpeed = backgroundSpeed;
+      currentObstacleSpeed = speedObstacle;
+
+    if (boostActive) {
+        
+        currentBackgroundSpeed = backgroundSpeed * 2;
+        currentObstacleSpeed = speedObstacle * 1.5;
+    } else if (brakePressed) {
+    
+        currentBackgroundSpeed = backgroundSpeed / 2;
+        currentObstacleSpeed = speedObstacle / 2;
+    }
+
        
     const leftBoundary = 60;
     const rightBoundary = 445 - imageWidth;
@@ -199,11 +217,16 @@ function update() {
     if (leftPressed && imageX > leftBoundary) {
         imageX -= movespeed;
     }
+
+    if (pause) {
+        draw();
+        return;
+    }
     if (rightPressed && imageX < rightBoundary) {
         imageX += movespeed;
     }
 
-    backgroundY = (backgroundY + backgroundSpeed) % canvas.height;
+    backgroundY = (backgroundY + currentBackgroundSpeed) % canvas.height;
 
     draw();
     moveObstacles();
@@ -266,6 +289,81 @@ function moveObstacles(){
         ) && !shieldActive){ {
             console.log("Collision detected!");
             gameOver = true;
+            alert(`Game Over!
+                Your score: ${score}`);
+                document.location.reload();
+                return;
+            }
+            if(obstacles[i].y > canvas.height){
+                obstacles.splice(i, 1);
+                i--; // Adjust index after removal
+            }
+        }
+    };
+}
+    // move car code
+    document.addEventListener("keydown", (e)=> {
+        if(e.key === "ArrowLeft" && imageX > 50){
+            imageX -= movespeed;
+        }
+        if(e.key === "ArrowRight" && imageX < 454 - imageWidth){
+            imageX += movespeed;
+        }
+    });
+    
+    // powerup code
+    function createPowerup() {
+        const x = Math.random() * (canvas.width - powerupSize - 100) + 50;
+        const y = -powerupSize;
+        const randomPowerup = powerupImgs[Math.floor(Math.random() * powerupImgs.length)];
+        
+        powerups.push({
+            x,
+            y,
+            width: powerupSize,
+            height: powerupSize,
+            img: randomPowerup.img,
+            type: randomPowerup.type
+        });
+    }
+    setInterval(createPowerup, 5000);
+    
+    function drawPowerups() {
+        for (let i = 0; i < powerups.length; i++) {
+            const p = powerups[i];
+            if (p.img.complete) {
+                ctx.drawImage(p.img, p.x, p.y, p.width, p.height);
+            } else {
+                ctx.fillStyle = "yellow";
+                ctx.fillRect(p.x, p.y, p.width, p.height);
+            }
+        }
+    }
+    drawPowerups();
+    
+    function movePowerups() {
+        for (let i = 0; i < powerups.length; i++) {
+            const p = powerups[i];
+            p.y += speedObstacle;
+            
+            if (checkCollision(
+                { x: imageX, y: imageY, width: imageWidth, height: imageHeight },
+                p   
+            )) {
+            if (p.type === "coin") {
+                score += 50; 
+            } else if (p.type === "speed") {
+                speedObstacle += 2;
+                setTimeout(() => speedObstacle -= 2, 5000); 
+            } else if (p.type === "shield") {
+                shieldActive = true;
+                setTimeout(() => shieldActive = false, 5000); 
+            }    
+            powerups.splice(i, 1);
+            i--;
+            continue;
+        }
+        
 
             if(score > highScore){
                 highScore = score;
@@ -294,10 +392,21 @@ let rightPressed = false;
 document.addEventListener("keydown", (e) => {
     if (e.key === "ArrowLeft") leftPressed = true;
     if (e.key === "ArrowRight") rightPressed = true;
+    if (e.key === "ArrowDown") brakePressed = true; 
+
+    
+    if (e.key === "ArrowUp" && !boostActive) {
+        boostActive = true;
+        setTimeout(() => {
+            boostActive = false;
+        }, 2000);
+    }
 });
+
 document.addEventListener("keyup", (e) => {
     if (e.key === "ArrowLeft") leftPressed = false;
     if (e.key === "ArrowRight") rightPressed = false;
+    if (e.key === "ArrowDown") brakePressed = false; 
 });
 
 function createPowerup() {
@@ -331,7 +440,7 @@ function drawPowerups() {
 function movePowerups() {
     for (let i = 0; i < powerups.length; i++) {
         const p = powerups[i];
-        p.y += speedObstacle;
+        p.y += currentObstacleSpeed;
 
 
 if (checkCollision(
@@ -364,7 +473,22 @@ if (checkCollision(
             i--;
         }
     }
-}
+} 
+
+const themeButtons = document.querySelectorAll(".themeBtn");
+themeButtons.forEach(button => {
+    button.addEventListener("click", () => {
+        themeButtons.forEach(btn => btn.classList.remove("active"));
+        button.classList.add("active");
+
+        const selectedTheme = button.dataset.theme;
+
+        img.src = themes[selectedTheme].road;
+        leftImg.src = themes[selectedTheme].left;
+        rightImg.src = themes[selectedTheme].right;
+    });
+});
+
 const playAgainBtn = document.getElementById("playAgainBtn");
 playAgainBtn.addEventListener("click", () => {
     score = 0;
