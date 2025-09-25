@@ -55,6 +55,11 @@ engineSound.loop = true;
 
 
 let gameOver = false; 
+let engineSoundPlaying = false;
+let brakePressed = false;
+let boostActive = false;
+let currentBackgroundSpeed = 0;
+let currentObstacleSpeed = 0;
 let backgroundY = 0;
 let backgroundSpeed = 5;
 let score = 0;
@@ -152,6 +157,20 @@ function draw() {
 
 function update() {
     if (gameOver) return;
+    
+      currentBackgroundSpeed = backgroundSpeed;
+      currentObstacleSpeed = speedObstacle;
+
+    if (boostActive) {
+        
+        currentBackgroundSpeed = backgroundSpeed * 2;
+        currentObstacleSpeed = speedObstacle * 1.5;
+    } else if (brakePressed) {
+    
+        currentBackgroundSpeed = backgroundSpeed / 2;
+        currentObstacleSpeed = speedObstacle / 2;
+    }
+
        
     const leftBoundary = 60;
     const rightBoundary = 445 - imageWidth;
@@ -163,7 +182,7 @@ function update() {
         imageX += movespeed;
     }
 
-    backgroundY = (backgroundY + backgroundSpeed) % canvas.height;
+    backgroundY = (backgroundY + currentBackgroundSpeed) % canvas.height;
 
     draw();
     moveObstacles();
@@ -219,7 +238,7 @@ function checkCollision(rect1, rect2) {
 
 function moveObstacles(){
     for(let i = 0; i < obstacles.length; i++){
-        obstacles[i].y += speedObstacle;
+        obstacles[i].y += currentObstacleSpeed;
         if(checkCollision({
             x: imageX,
             y: imageY, 
@@ -260,10 +279,21 @@ let rightPressed = false;
 document.addEventListener("keydown", (e) => {
     if (e.key === "ArrowLeft") leftPressed = true;
     if (e.key === "ArrowRight") rightPressed = true;
+    if (e.key === "ArrowDown") brakePressed = true; 
+
+    
+    if (e.key === "ArrowUp" && !boostActive) {
+        boostActive = true;
+        setTimeout(() => {
+            boostActive = false;
+        }, 2000);
+    }
 });
+
 document.addEventListener("keyup", (e) => {
     if (e.key === "ArrowLeft") leftPressed = false;
     if (e.key === "ArrowRight") rightPressed = false;
+    if (e.key === "ArrowDown") brakePressed = false; 
 });
 
 function createPowerup() {
@@ -297,7 +327,7 @@ function drawPowerups() {
 function movePowerups() {
     for (let i = 0; i < powerups.length; i++) {
         const p = powerups[i];
-        p.y += speedObstacle;
+        p.y += currentObstacleSpeed;
 
 
 if (checkCollision(
