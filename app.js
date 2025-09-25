@@ -45,9 +45,15 @@ const themes = {
 
 
 
-// Game variables
-let x = 0;
-let pause = true;
+
+const engineSound = new Audio("sounds/engine.mp3");   
+const crashSound = new Audio("sounds/crash.mp3");
+const coinSound = new Audio("sounds/coin.mp3");
+
+engineSound.loop = true;
+
+
+
 let gameOver = false; 
 let engineSoundPlaying = false;
 let brakePressed = false;
@@ -57,45 +63,14 @@ let currentObstacleSpeed = 0;
 let backgroundY = 0;
 let backgroundSpeed = 5;
 let score = 0;
+let highScore = localStorage.getItem("highScore") ? parseInt(localStorage.getItem("highScore")) : 0;
 let speedObstacle = 3;
 let imageX = canvas.width / 2 - 25;
 let imageY = canvas.height - 120;
-const imageWidth = 45;
+const imageWidth = 40;
 const imageHeight = 80;
-const movespeed = 10;
+const movespeed = 4;
 
-let scoreInterval;
-let obstacleInterval;
-let powerupInterval;
-let speedInterval;
-
-// Start game loops
-function startGameLoops() {
-    scoreInterval = setInterval(() => {
-        score += 1;
-    }, 10);
-
-    obstacleInterval = setInterval(createObstacle, 700);
-
-    speedInterval = setInterval(() => {
-        if (speedObstacle < 12) {
-            speedObstacle += 1;
-        }
-    }, 10000);
-
-    powerupInterval = setInterval(createPowerup, 5000);
-}
-
-// Stop game loops
-function stopGameLoops() {
-    clearInterval(scoreInterval);
-    clearInterval(obstacleInterval);
-    clearInterval(powerupInterval);
-    clearInterval(speedInterval);
-}
-
-// new is used to create an instance of an object
-// Background imagees
 const img = new Image();
 img.src = themes.default.road;
 leftImg.src = themes.default.left;
@@ -104,7 +79,6 @@ rightImg.src = themes.default.right;
 const moto = new Image();
 moto.src = "images/car2.png";
 
-// Obstacle images
 const obstacleImgs = [
     "images/car1.png",
     "images/car2.png",
@@ -118,7 +92,7 @@ const obstacleImgs = [
     return img;
 });
 
-// Powerup images
+
 const powerupImgs = [
     { src: "images/coin.png", type: "coin" },
     { src: "images/shield.png", type: "shield" },
@@ -138,10 +112,25 @@ const obstacleWidth = 40;
 const obstaclesHeight = 80;
 const obstacles = [];
 
-//-----Draw function-----
+
+
+
+setInterval(() => {
+    if(speedObstacle < 8){
+        speedObstacle += 1;    
+    }
+    console.log(speedObstacle); 
+    }, 10000);
+
+    setInterval(createObstacle, 700);
+
+    setInterval(() => {
+        score += 1;
+    }, 10);
+
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
+
     if (rightImg.complete) {
         ctxR.drawImage(rightImg, 0, backgroundY, canvasR.width, canvasR.height);
         ctxR.drawImage(rightImg, 0, backgroundY - canvasR.height, canvasR.width, canvasR.height);
@@ -149,7 +138,7 @@ function draw() {
     if (leftImg.complete) {    
         ctxL.drawImage(leftImg, 0, backgroundY, canvasL.width, canvasL.height);
         ctxL.drawImage(leftImg, 0, backgroundY - canvasL.height, canvasL.width, canvasL.height);
-    } 
+    }
     if (img.complete) {
         ctx.drawImage(img, 0, backgroundY, canvas.width, canvas.height);
         ctx.drawImage(img, 0, backgroundY - canvas.height, canvas.width, canvas.height);
@@ -159,43 +148,15 @@ function draw() {
         ctx.drawImage(moto, imageX, imageY, imageWidth, imageHeight);
         // ctx.strokeStyle = "black";  
         // ctx.strokeRect(imageX, imageY, imageWidth, imageHeight);
-        
     }
-    
     ctx.fillStyle = "white";
     ctx.font = "20px Arial";
     ctx.fillText(`Score: ${score}`, 10, 30);
-    if (shieldActive) {
-        ctx.beginPath();
-        ctx.arc(imageX + imageWidth / 2, imageY + imageHeight / 2, imageWidth, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(0, 0, 255, 0.5)";
-        ctx.fill();
-        ctx.closePath();
-    }
-
-    if(pause){
-        ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "white";
-        ctx.font = "40px Arial";
-        ctx.fillText("Press 'Escape' to Start", canvas.width / 2 - 180, canvas.height / 2);
-    }else{
-        ctx.fillStyle = "rgba(0, 0, 0, 0)";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
-        ctx.font = "20px Arial";
-        ctx.fillText("Press 'Escape' to Pause", canvas.width / 2 - 100, canvas.height - 10);
-    }
+    ctx.fillText(`High Score: ${highScore}`, 10, 60);
 }
 
-//-----Update function-----
 function update() {
-    
     if (gameOver) return;
-    
-    backgroundY = backgroundY + backgroundSpeed;
-    if(backgroundY >= canvas.height){
-        backgroundY = 0;
     
       currentBackgroundSpeed = backgroundSpeed;
       currentObstacleSpeed = speedObstacle;
@@ -217,11 +178,6 @@ function update() {
     if (leftPressed && imageX > leftBoundary) {
         imageX -= movespeed;
     }
-
-    if (pause) {
-        draw();
-        return;
-    }
     if (rightPressed && imageX < rightBoundary) {
         imageX += movespeed;
     }
@@ -234,24 +190,30 @@ function update() {
     movePowerups();
     drawPowerups();
     requestAnimationFrame(update);
+
+    if (!engineSoundPlaying) {
+    engineSound.loop = true;
+    engineSound.volume = 0.3;
+    engineSound.play();
+    engineSoundPlaying = true;
 }
 
-// create obstacles code
+}
+
 function createObstacle() {
     const x = Math.random() * (canvas.width - obstacleWidth - 100) + 50;
     const y = -obstaclesHeight;
     const randomImg = obstacleImgs[Math.floor(Math.random() * obstacleImgs.length)];
-    
+
     obstacles.push({ 
         x,
         y,
         width: obstacleWidth,
         height: obstaclesHeight,
-        img: obstacleImgs[Math.floor(Math.random() * obstacleImgs.length)]
+        img: randomImg // Use the already selected image
     });
 }      
 
-// draw obstacles code
 function drawObstacles() {
     for (let i = 0; i < obstacles.length; i++) {
         const obs = obstacles[i];
@@ -265,8 +227,6 @@ function drawObstacles() {
         }
     }
 }
-
-// collision code
 function checkCollision(rect1, rect2) {
     return (
         rect1.x <= rect2.x + rect2.width - 12 &&
@@ -276,7 +236,6 @@ function checkCollision(rect1, rect2) {
     );
 }
 
-// move obstacles code
 function moveObstacles(){
     for(let i = 0; i < obstacles.length; i++){
         obstacles[i].y += currentObstacleSpeed;
@@ -286,84 +245,12 @@ function moveObstacles(){
             width: imageWidth, 
             height: imageHeight},
             obstacles[i]
-        ) && !shieldActive){ {
+        )) {
+            crashSound.volume = 0.5;
+            crashSound.play();
+
             console.log("Collision detected!");
             gameOver = true;
-            alert(`Game Over!
-                Your score: ${score}`);
-                document.location.reload();
-                return;
-            }
-            if(obstacles[i].y > canvas.height){
-                obstacles.splice(i, 1);
-                i--; // Adjust index after removal
-            }
-        }
-    };
-}
-    // move car code
-    document.addEventListener("keydown", (e)=> {
-        if(e.key === "ArrowLeft" && imageX > 50){
-            imageX -= movespeed;
-        }
-        if(e.key === "ArrowRight" && imageX < 454 - imageWidth){
-            imageX += movespeed;
-        }
-    });
-    
-    // powerup code
-    function createPowerup() {
-        const x = Math.random() * (canvas.width - powerupSize - 100) + 50;
-        const y = -powerupSize;
-        const randomPowerup = powerupImgs[Math.floor(Math.random() * powerupImgs.length)];
-        
-        powerups.push({
-            x,
-            y,
-            width: powerupSize,
-            height: powerupSize,
-            img: randomPowerup.img,
-            type: randomPowerup.type
-        });
-    }
-    setInterval(createPowerup, 5000);
-    
-    function drawPowerups() {
-        for (let i = 0; i < powerups.length; i++) {
-            const p = powerups[i];
-            if (p.img.complete) {
-                ctx.drawImage(p.img, p.x, p.y, p.width, p.height);
-            } else {
-                ctx.fillStyle = "yellow";
-                ctx.fillRect(p.x, p.y, p.width, p.height);
-            }
-        }
-    }
-    drawPowerups();
-    
-    function movePowerups() {
-        for (let i = 0; i < powerups.length; i++) {
-            const p = powerups[i];
-            p.y += speedObstacle;
-            
-            if (checkCollision(
-                { x: imageX, y: imageY, width: imageWidth, height: imageHeight },
-                p   
-            )) {
-            if (p.type === "coin") {
-                score += 50; 
-            } else if (p.type === "speed") {
-                speedObstacle += 2;
-                setTimeout(() => speedObstacle -= 2, 5000); 
-            } else if (p.type === "shield") {
-                shieldActive = true;
-                setTimeout(() => shieldActive = false, 5000); 
-            }    
-            powerups.splice(i, 1);
-            i--;
-            continue;
-        }
-        
 
             if(score > highScore){
                 highScore = score;
@@ -473,7 +360,8 @@ if (checkCollision(
             i--;
         }
     }
-} 
+}
+
 
 const themeButtons = document.querySelectorAll(".themeBtn");
 themeButtons.forEach(button => {
@@ -504,18 +392,3 @@ playAgainBtn.addEventListener("click", () => {
     update();
 });
 update();
-
-// Pause and Resume code
-document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") {
-        pause = !pause;
-        if (pause) {
-            backgroundSpeed = 0;
-            stopGameLoops();
-        } else {
-            backgroundSpeed = 5;
-            startGameLoops();
-            update();
-        }
-    }
-});
