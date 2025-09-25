@@ -23,33 +23,59 @@ const ctx = canvas.getContext("2d");
 canvas.width = 500;
 canvas.height = window.innerHeight;
 
-
-const engineSound = new Audio("sounds/engine.mp3");   
-const crashSound = new Audio("sounds/crash.mp3");
-const coinSound = new Audio("sounds/coin.mp3");
-
-engineSound.loop = true;
-
-
-
+// Game variables
+let x = 0;
+let pause = true;
 let gameOver = false; 
 let backgroundY = 0;
 let backgroundSpeed = 5;
 let score = 0;
-let highScore = localStorage.getItem("highScore") ? parseInt(localStorage.getItem("highScore")) : 0;
 let speedObstacle = 3;
 let imageX = canvas.width / 2 - 25;
 let imageY = canvas.height - 120;
-const imageWidth = 40;
+const imageWidth = 45;
 const imageHeight = 80;
-const movespeed = 4;
+const movespeed = 10;
 
+let scoreInterval;
+let obstacleInterval;
+let powerupInterval;
+let speedInterval;
+
+// Start game loops
+function startGameLoops() {
+    scoreInterval = setInterval(() => {
+        score += 1;
+    }, 10);
+
+    obstacleInterval = setInterval(createObstacle, 700);
+
+    speedInterval = setInterval(() => {
+        if (speedObstacle < 12) {
+            speedObstacle += 1;
+        }
+    }, 10000);
+
+    powerupInterval = setInterval(createPowerup, 5000);
+}
+
+// Stop game loops
+function stopGameLoops() {
+    clearInterval(scoreInterval);
+    clearInterval(obstacleInterval);
+    clearInterval(powerupInterval);
+    clearInterval(speedInterval);
+}
+
+// new is used to create an instance of an object
+// Background imagees
 const img = new Image();
 img.src = "images/road.jpg";
 
 const moto = new Image();
 moto.src = "images/car2.png";
 
+// Obstacle images
 const obstacleImgs = [
     "images/car1.png",
     "images/car2.png",
@@ -63,7 +89,7 @@ const obstacleImgs = [
     return img;
 });
 
-
+// Powerup images
 const powerupImgs = [
     { src: "images/coin.png", type: "coin" },
     { src: "images/shield.png", type: "shield" },
@@ -83,25 +109,10 @@ const obstacleWidth = 40;
 const obstaclesHeight = 80;
 const obstacles = [];
 
-
-
-
-setInterval(() => {
-    if(speedObstacle < 8){
-        speedObstacle += 1;    
-    }
-    console.log(speedObstacle); 
-    }, 10000);
-
-    setInterval(createObstacle, 700);
-
-    setInterval(() => {
-        score += 1;
-    }, 10);
-
+//-----Draw function-----
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
+    
     if (rightImg.complete) {
         ctxR.drawImage(rightImg, 0, backgroundY, canvasR.width, canvasR.height);
         ctxR.drawImage(rightImg, 0, backgroundY - canvasR.height, canvasR.width, canvasR.height);
@@ -109,7 +120,7 @@ function draw() {
     if (leftImg.complete) {    
         ctxL.drawImage(leftImg, 0, backgroundY, canvasL.width, canvasL.height);
         ctxL.drawImage(leftImg, 0, backgroundY - canvasL.height, canvasL.width, canvasL.height);
-    }
+    } 
     if (img.complete) {
         ctx.drawImage(img, 0, backgroundY, canvas.width, canvas.height);
         ctx.drawImage(img, 0, backgroundY - canvas.height, canvas.width, canvas.height);
@@ -119,58 +130,73 @@ function draw() {
         ctx.drawImage(moto, imageX, imageY, imageWidth, imageHeight);
         // ctx.strokeStyle = "black";  
         // ctx.strokeRect(imageX, imageY, imageWidth, imageHeight);
+        
     }
+    
     ctx.fillStyle = "white";
     ctx.font = "20px Arial";
     ctx.fillText(`Score: ${score}`, 10, 30);
-    ctx.fillText(`High Score: ${highScore}`, 10, 60);
+    if (shieldActive) {
+        ctx.beginPath();
+        ctx.arc(imageX + imageWidth / 2, imageY + imageHeight / 2, imageWidth, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(0, 0, 255, 0.5)";
+        ctx.fill();
+        ctx.closePath();
+    }
+
+    if(pause){
+        ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "white";
+        ctx.font = "40px Arial";
+        ctx.fillText("Press 'Escape' to Start", canvas.width / 2 - 180, canvas.height / 2);
+    }else{
+        ctx.fillStyle = "rgba(0, 0, 0, 0)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+        ctx.font = "20px Arial";
+        ctx.fillText("Press 'Escape' to Pause", canvas.width / 2 - 100, canvas.height - 10);
+    }
 }
 
+//-----Update function-----
 function update() {
-    if (gameOver) return;
-       
-    const leftBoundary = 60;
-    const rightBoundary = 445 - imageWidth;
     
-    if (leftPressed && imageX > leftBoundary) {
-        imageX -= movespeed;
-    }
-    if (rightPressed && imageX < rightBoundary) {
-        imageX += movespeed;
+    if (gameOver) return;
+    
+    backgroundY = backgroundY + backgroundSpeed;
+    if(backgroundY >= canvas.height){
+        backgroundY = 0;
     }
 
-    backgroundY = (backgroundY + backgroundSpeed) % canvas.height;
-
+    if (pause) {
+        draw();
+        return;
+    }
     draw();
     moveObstacles();
     drawObstacles();
     movePowerups();
     drawPowerups();
     requestAnimationFrame(update);
-
-    if (!engineSoundPlaying) {
-    engineSound.loop = true;
-    engineSound.volume = 0.3;
-    engineSound.play();
-    engineSoundPlaying = true;
 }
 
-}
-
+// create obstacles code
 function createObstacle() {
     const x = Math.random() * (canvas.width - obstacleWidth - 100) + 50;
     const y = -obstaclesHeight;
     const randomImg = obstacleImgs[Math.floor(Math.random() * obstacleImgs.length)];
-
+    
     obstacles.push({ 
         x,
         y,
         width: obstacleWidth,
         height: obstaclesHeight,
-        img: randomImg // Use the already selected image
+        img: obstacleImgs[Math.floor(Math.random() * obstacleImgs.length)]
     });
 }      
 
+// draw obstacles code
 function drawObstacles() {
     for (let i = 0; i < obstacles.length; i++) {
         const obs = obstacles[i];
@@ -184,6 +210,8 @@ function drawObstacles() {
         }
     }
 }
+
+// collision code
 function checkCollision(rect1, rect2) {
     return (
         rect1.x <= rect2.x + rect2.width - 12 &&
@@ -193,6 +221,7 @@ function checkCollision(rect1, rect2) {
     );
 }
 
+// move obstacles code
 function moveObstacles(){
     for(let i = 0; i < obstacles.length; i++){
         obstacles[i].y += speedObstacle;
@@ -202,123 +231,103 @@ function moveObstacles(){
             width: imageWidth, 
             height: imageHeight},
             obstacles[i]
-        )) {
-            crashSound.volume = 0.5;
-            crashSound.play();
-
+        ) && !shieldActive){ {
             console.log("Collision detected!");
             gameOver = true;
-
-            if(score > highScore){
-                highScore = score;
-                localStorage.setItem("highScore", highScore);
+            alert(`Game Over!
+                Your score: ${score}`);
+                document.location.reload();
+                return;
             }
-
-            // Show Game Over message and Play Again button
-            const gameOverContainer = document.getElementById("gameOverContainer");
-            const gameOverMessage = document.getElementById("gameOverMessage");
-            gameOverContainer.style.display = "block";
-            gameOverMessage.innerHTML = score > highScore
-                ? `Game Over!<br>Your score: ${score}<br>New High Score!`
-                : `Game Over!<br>Your score: ${score}<br>High Score: ${highScore}`;
-
-            return;
+            if(obstacles[i].y > canvas.height){
+                obstacles.splice(i, 1);
+                i--; // Adjust index after removal
+            }
         }
-        if(obstacles[i].y > canvas.height){
-            obstacles.splice(i, 1);
-            i--; //
-    }
+    };
 }
-};
-let leftPressed = false;
-let rightPressed = false;
-
-document.addEventListener("keydown", (e) => {
-    if (e.key === "ArrowLeft") leftPressed = true;
-    if (e.key === "ArrowRight") rightPressed = true;
-});
-document.addEventListener("keyup", (e) => {
-    if (e.key === "ArrowLeft") leftPressed = false;
-    if (e.key === "ArrowRight") rightPressed = false;
-});
-
-function createPowerup() {
-    const x = Math.random() * (canvas.width - powerupSize - 100) + 50;
-    const y = -powerupSize;
-    const randomPowerup = powerupImgs[Math.floor(Math.random() * powerupImgs.length)];
-
-    powerups.push({
-        x,
-        y,
-        width: powerupSize,
-        height: powerupSize,
-        img: randomPowerup.img,
-        type: randomPowerup.type
+    // move car code
+    document.addEventListener("keydown", (e)=> {
+        if(e.key === "ArrowLeft" && imageX > 50){
+            imageX -= movespeed;
+        }
+        if(e.key === "ArrowRight" && imageX < 454 - imageWidth){
+            imageX += movespeed;
+        }
     });
-}
-setInterval(createPowerup, 5000);
-
-function drawPowerups() {
-    for (let i = 0; i < powerups.length; i++) {
-        const p = powerups[i];
-        if (p.img.complete) {
-            ctx.drawImage(p.img, p.x, p.y, p.width, p.height);
-        } else {
-            ctx.fillStyle = "yellow";
-            ctx.fillRect(p.x, p.y, p.width, p.height);
+    
+    // powerup code
+    function createPowerup() {
+        const x = Math.random() * (canvas.width - powerupSize - 100) + 50;
+        const y = -powerupSize;
+        const randomPowerup = powerupImgs[Math.floor(Math.random() * powerupImgs.length)];
+        
+        powerups.push({
+            x,
+            y,
+            width: powerupSize,
+            height: powerupSize,
+            img: randomPowerup.img,
+            type: randomPowerup.type
+        });
+    }
+    setInterval(createPowerup, 5000);
+    
+    function drawPowerups() {
+        for (let i = 0; i < powerups.length; i++) {
+            const p = powerups[i];
+            if (p.img.complete) {
+                ctx.drawImage(p.img, p.x, p.y, p.width, p.height);
+            } else {
+                ctx.fillStyle = "yellow";
+                ctx.fillRect(p.x, p.y, p.width, p.height);
+            }
         }
     }
-}
-
-function movePowerups() {
-    for (let i = 0; i < powerups.length; i++) {
-        const p = powerups[i];
-        p.y += speedObstacle;
-
-
-if (checkCollision(
-    { x: imageX, y: imageY, width: imageWidth, height: imageHeight },
-    p   
-)) {
-    if (p.type === "coin") {
-        score += 50; 
-        coinSound.currentTime = 0; 
-        coinSound.play();           
-
-
-    } else if (p.type === "speed") {
-        speedObstacle += 2;
-        setTimeout(() => speedObstacle -= 2, 5000); // speed boost lasts 5s
-    } else if (p.type === "shield") {
-        shieldActive = true;
-        setTimeout(() => shieldActive = false, 5000); // shield lasts 5s
-    }
-
+    drawPowerups();
     
-    powerups.splice(i, 1);
-    i--;
-    continue;
-
-}
-       
+    function movePowerups() {
+        for (let i = 0; i < powerups.length; i++) {
+            const p = powerups[i];
+            p.y += speedObstacle;
+            
+            if (checkCollision(
+                { x: imageX, y: imageY, width: imageWidth, height: imageHeight },
+                p   
+            )) {
+            if (p.type === "coin") {
+                score += 50; 
+            } else if (p.type === "speed") {
+                speedObstacle += 2;
+                setTimeout(() => speedObstacle -= 2, 5000); 
+            } else if (p.type === "shield") {
+                shieldActive = true;
+                setTimeout(() => shieldActive = false, 5000); 
+            }    
+            powerups.splice(i, 1);
+            i--;
+            continue;
+        }
+        
         if (p.y > canvas.height) {
             powerups.splice(i, 1);
             i--;
         }
     }
-}
-const playAgainBtn = document.getElementById("playAgainBtn");
-playAgainBtn.addEventListener("click", () => {
-    score = 0;
-    gameOver = false;
-    backgroundY = 0;
-    speedObstacle = 3;
-    imageX = canvas.width / 2 - 25;
-    imageY = canvas.height - 120;
-    obstacles.length = 0;
-    powerups.length = 0;
-    shieldActive = false;
-    document.getElementById("gameOverContainer").style.display = "none";
-    update();
-});
+} 
 update();
+
+// Pause and Resume code
+document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+        pause = !pause;
+        if (pause) {
+            backgroundSpeed = 0;
+            stopGameLoops();
+        } else {
+            backgroundSpeed = 5;
+            startGameLoops();
+            update();
+        }
+    }
+});
