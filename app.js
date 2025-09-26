@@ -342,10 +342,10 @@ if (checkCollision(
 
     } else if (p.type === "speed") {
         speedObstacle += 2;
-        setTimeout(() => speedObstacle -= 2, 5000); // speed boost lasts 5s
+        setTimeout(() => speedObstacle -= 2, 5000); 
     } else if (p.type === "shield") {
         shieldActive = true;
-        setTimeout(() => shieldActive = false, 5000); // shield lasts 5s
+        setTimeout(() => shieldActive = false, 5000); 
     }
 
     
@@ -391,4 +391,4 @@ playAgainBtn.addEventListener("click", () => {
     document.getElementById("gameOverContainer").style.display = "none";
     update();
 });
-update();
+update();            
