@@ -176,6 +176,7 @@ function draw() {
     ctx.font = "14px Arial";
     ctx.textAlign = "center";
     ctx.fillText("Press ESC to pause", canvas.width / 2, canvas.height - 20);
+    
     ctx.textAlign = "left";
     ctx.fillStyle = "white";
     ctx.font = "20px Arial";
@@ -188,6 +189,12 @@ function draw() {
     // Draw difficulty level
     const difficultyLevel = Math.floor(score / 1000) + 1;
     ctx.fillText(`Level: ${difficultyLevel}`, 10, 120);
+
+    ctx.fillStyle = "white";
+    ctx.font = "14px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("Controls: ↑ Boost | ↓ Brake", canvas.width - 120, 40);
+    ctx.textAlign = "left";
     
     // Draw boost charge indicator
     const boostBarWidth = 200;
