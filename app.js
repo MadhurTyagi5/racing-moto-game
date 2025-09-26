@@ -637,7 +637,7 @@ if (checkCollision(
 
     } else if (p.type === "speed") {
         speedObstacle += 2;
-        setTimeout(() => speedObstacle -= 2, 5000); // speed boost lasts 5s
+        setTimeout(() => speedObstacle -= 2, 5000); 
     } else if (p.type === "shield") {
         shieldActive = true;
         shieldTimeRemaining = 5000; // shield lasts 5 seconds (5000ms)
