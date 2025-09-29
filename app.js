@@ -193,7 +193,8 @@ function draw() {
     ctx.fillStyle = "white";
     ctx.font = "14px Arial";
     ctx.textAlign = "center";
-    ctx.fillText("Controls: ↑ Boost | ↓ Brake", canvas.width - 120, 40);
+    ctx.fillText("Controls: W/S Forward/Back | A/D Left/Right", canvas.width - 150, 40);
+    ctx.fillText("↑ Boost | ↓ Brake", canvas.width - 120, 60);
     ctx.textAlign = "left";
     
     // Draw boost charge indicator
@@ -351,12 +352,20 @@ function update() {
        
     const leftBoundary = 60;
     const rightBoundary = 445 - imageWidth;
+    const topBoundary = 0;
+    const bottomBoundary = canvas.height - imageHeight;
     
     if (leftPressed && imageX > leftBoundary) {
         imageX -= movespeed;
     }
     if (rightPressed && imageX < rightBoundary) {
         imageX += movespeed;
+    }
+    if (forwardPressed && imageY > topBoundary) {
+        imageY -= movespeed;
+    }
+    if (backwardPressed && imageY < bottomBoundary) {
+        imageY += movespeed;
     }
 
     backgroundY = (backgroundY + currentBackgroundSpeed) % canvas.height;
@@ -544,6 +553,8 @@ function moveObstacles(){
 
 let leftPressed = false;
 let rightPressed = false;
+let forwardPressed = false;
+let backwardPressed = false;
 
 document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
@@ -558,9 +569,11 @@ document.addEventListener("keydown", (e) => {
     
     if (gamePaused) return; // Don't process other keys when paused
     
-    if (e.key === "ArrowLeft") leftPressed = true;
-    if (e.key === "ArrowRight") rightPressed = true;
-    if (e.key === "ArrowDown") brakePressed = true; 
+    if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") leftPressed = true;
+    if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") rightPressed = true;
+    if (e.key === "ArrowDown") brakePressed = true;
+    if (e.key === "w" || e.key === "W") forwardPressed = true;
+    if (e.key === "s" || e.key === "S") backwardPressed = true; 
 
     
     if (e.key === "ArrowUp" && !boostActive && boostCharge >= 100 && boostCooldown <= 0) {
@@ -575,9 +588,11 @@ document.addEventListener("keydown", (e) => {
 });
 
 document.addEventListener("keyup", (e) => {
-    if (e.key === "ArrowLeft") leftPressed = false;
-    if (e.key === "ArrowRight") rightPressed = false;
-    if (e.key === "ArrowDown") brakePressed = false; 
+    if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") leftPressed = false;
+    if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") rightPressed = false;
+    if (e.key === "ArrowDown") brakePressed = false;
+    if (e.key === "w" || e.key === "W") forwardPressed = false;
+    if (e.key === "s" || e.key === "S") backwardPressed = false;
 });
 
 function createPowerup() {
